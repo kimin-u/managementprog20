@@ -27,6 +27,7 @@ void printform(node_t* list_head);
 void savefile(node_t* list_head);
 void openfile(node_t** list_head);
 void minitest(node_t* list_head);
+void retest(node_t* list_head);
 
 int main(void)
 {
@@ -38,7 +39,7 @@ remenu:
 		menu();
 		printf("기능을 선택하세요 : ");
 		scanf("%d",&select);
-		if (select>12 || select<0){
+		if (select>13 || select<0){
 			printf("잘못 입력하셨습니다.\n");
 			goto remenu;
 		}
@@ -78,9 +79,12 @@ remenu:
 				minitest(list_head);
 				break;
 			case 11:
-				savefile(list_head);
+				retest(list_head);
 				break;
 			case 12:
+				savefile(list_head);
+				break;
+			case 13:
 				printf("단어장을 종료합니다.\n");
 				return 0;
 		}
@@ -101,8 +105,9 @@ void menu()
 	printf("8. 단어 검색\n");
 	printf("9. 품사별 출력\n");
 	printf("10. 미니테스트 시작\n");
-	printf("11. 단어장에 저장\n");
-	printf("12. 종료\n");
+	printf("11. 재시험 (틀린적 있는 단어만) \n");
+	printf("12. 단어장에 저장\n");
+	printf("13. 종료\n");
 	printf("===========\n");
 	return;
 }
@@ -443,3 +448,43 @@ void minitest(node_t* list_head)
 	printf("점수 : %d\n",score);
 	return;
 }
+
+void retest(node_t* list_head)
+{
+	srand(time(NULL));
+	node_t* tmp = list_head;
+	int i, sub_i;
+	int list[cnt];
+	char answer[20];
+	for (i = 0 ; i<cnt; i++){
+		list[i] = rand()%cnt;
+		for (sub_i=0; sub_i<i; sub_i++){
+			if ( list[i] == list[sub_i]){
+				i--;
+				break;
+			}
+		}
+	}
+	for( i=0; i<cnt;i++){
+		for ( int j =0; j<list[i]; j++){
+			list_head = list_head->next;
+		}
+		if ((list_head->wrongcount)>=1){
+			printf("%s의 한글 뜻은 ? ",list_head -> english);
+			scanf("%s",answer);
+			if (strcmp(list_head->korean, answer)==0){
+				printf("정답\n");
+				list_head->wrongcount -= 1;
+			}
+			else{
+				printf("오답\n");
+				list_head->wrongcount += 1;
+				printf("정답 : %s\n",list_head->korean);
+			}
+		}
+		list_head=tmp;
+	}
+	return ;
+}
+
+
