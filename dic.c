@@ -306,10 +306,8 @@ void openfile(node_t** list_head)
 		printf("파일을 열 수 없습니다.\n");
 		return ;
 	}
-	while(1){
+	while(!feof(fp)){
 		new_node = (node_t*) malloc (sizeof(node_t));
-		if (feof(fp)!=0)
-			break;
 		fscanf(fp,"%s %s %s %d\n",new_node->english,new_node->korean, new_node->form, &new_node->check);
 		new_node->next=*list_head;
 		*list_head=new_node;
