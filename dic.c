@@ -15,6 +15,7 @@ node_t*  add(node_t* list_head,node_t*(*func)(node_t*,char*));
 void print_list(node_t* list_head);
 node_t* search_eng(node_t* list_head, char* english);
 void sub(node_t** list_head, node_t*(*func)(node_t* , char*));
+node_t* removeall(node_t* list_head);
 void changecheck(node_t* list_head, node_t*(*func)(node_t*,char*));
 void printchecklist(node_t* list_head);
 void printsearch(node_t* list_head, node_t*(*func)(node_t*,char*));
@@ -32,7 +33,7 @@ remenu:
 		menu();
 		printf("기능을 선택하세요 : ");
 		scanf("%d",&select);
-		if (select>=10 || select<0){
+		if (select>10 || select<0){
 			printf("잘못 입력하셨습니다.\n");
 			goto remenu;
 		}
@@ -47,24 +48,27 @@ remenu:
 				sub(&list_head,search_eng);
 				break;
 			case 3:
-				print_list(list_head);
+				list_head = removeall(list_head);
 				break;
 			case 4:
-				changecheck(list_head, search_eng);
+				print_list(list_head);
 				break;
 			case 5:
-				printchecklist(list_head);
+				changecheck(list_head, search_eng);
 				break;
 			case 6:
-				printsearch(list_head, search_eng);
+				printchecklist(list_head);
 				break;
 			case 7:
-				printform(list_head);
+				printsearch(list_head, search_eng);
 				break;
 			case 8:
-				savefile(list_head);
+				printform(list_head);
 				break;
 			case 9:
+				savefile(list_head);
+				break;
+			case 10:
 				printf("단어장을 종료합니다.\n");
 				return 0;
 		}
@@ -77,13 +81,14 @@ void menu()
 	printf("0. 단어장 불러오기\n");
 	printf("1. 단어 추가\n");
 	printf("2. 단어 삭제\n");
-	printf("3. 저장된 단어들 출력\n");
-	printf("4. 단어 체크표시 여부를 바꾸기\n");
-	printf("5. 체크표시된 단어 출력\n");
-	printf("6. 단어 검색\n");
-	printf("7. 품사별 출력\n");
-	printf("8. 단어장에 저장\n");
-	printf("9. 종료\n");
+	printf("3. 단어 모두 삭제\n");
+	printf("4. 저장된 단어들 출력\n");
+	printf("5. 단어 체크표시 여부를 바꾸기\n");
+	printf("6. 체크표시된 단어 출력\n");
+	printf("7. 단어 검색\n");
+	printf("8. 품사별 출력\n");
+	printf("9. 단어장에 저장\n");
+	printf("10. 종료\n");
 	printf("===========\n");
 	return;
 }
@@ -177,6 +182,19 @@ void sub(node_t** list_head, node_t*(*func)(node_t*,char*))
 	}
 }
 
+node_t* removeall(node_t* list_head)
+{
+	node_t* tmp=list_head;
+	list_head=list_head->next;
+	while (list_head!=NULL){
+		free(tmp);
+		tmp=list_head;
+		list_head=list_head->next;
+	}
+	free(tmp);
+	printf("전체 삭제 완료\n");
+	return NULL;
+}
 
 void changecheck(node_t* list_head, node_t*(*func)(node_t*, char*))
 {
@@ -190,10 +208,12 @@ void changecheck(node_t* list_head, node_t*(*func)(node_t*, char*))
 	if (tmp->check == 0){
 		printf("%s 체크표시를 하겠습니다.\n", eng);
 		tmp->check =1;
+		return;
 	}	
 	else {
 		printf("%s 체크표시를 지우겠습니다.\n",eng);
 		tmp->check =0;
+		return;
 	}
 }
 
