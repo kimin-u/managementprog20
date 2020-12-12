@@ -39,7 +39,7 @@ remenu:
 		menu();
 		printf("기능을 선택하세요 : ");
 		scanf("%d",&select);
-		if (select>13 || select<0){
+		if (select>13 || select<=0){
 			printf("잘못 입력하셨습니다.\n");
 			goto remenu;
 		}
