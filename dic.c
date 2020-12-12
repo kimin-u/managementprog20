@@ -25,7 +25,7 @@ void printchecklist(node_t* list_head);
 void printsearch(node_t* list_head, node_t*(*func)(node_t*,char*));
 void printform(node_t* list_head);
 void savefile(node_t* list_head);
-void openfile(node_t** list_head);
+void openfile(node_t** list_head,node_t*(*func)(node_t*));
 void minitest(node_t* list_head);
 void retest(node_t* list_head);
 
@@ -33,7 +33,7 @@ int main(void)
 {
 	node_t* list_head=NULL;
 	int select;
-
+	openfile(&list_head,removeall);
 remenu:
 	while (1){
 		menu();
@@ -44,9 +44,6 @@ remenu:
 			goto remenu;
 		}
 		switch (select){
-			case 0:
-				openfile(&list_head);
-				break;
 			case 1:
 				list_head = add(list_head,search_eng);
 				break;
@@ -94,7 +91,6 @@ remenu:
 void menu()
 {
 	printf("============\n");
-	printf("0. 단어장 불러오기\n");
 	printf("1. 단어 추가\n");
 	printf("2. 단어 삭제\n");
 	printf("3. 단어 모두 삭제\n");
@@ -350,13 +346,12 @@ void savefile(node_t* list_head)
 	printf("저장을 완료했습니다.\n");
 }
 
-void openfile(node_t** list_head)
+void openfile(node_t** list_head,node_t*(*func)(node_t*))
 {
-	(*list_head) = removeall(*list_head);
+	(*list_head) = func(*list_head);
 	node_t* new_node;
 	FILE* fp = fopen("dictionary.txt","r+");
 	if (fp==NULL){
-		printf("파일을 열 수 없습니다.\n");
 		return ;
 	}
 	while(!feof(fp)){
@@ -373,7 +368,6 @@ void openfile(node_t** list_head)
 		cnt++;
 	}
 	fclose(fp);
-	printf("파일을 불러왔습니다.\n");
 }
 
 void minitest(node_t* list_head)
