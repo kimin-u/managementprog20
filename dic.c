@@ -1,14 +1,17 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-
+#include<time.h>
 typedef struct node{
 	char english[20];
 	char korean[20];
 	char form[20];
 	int check;
+	int wrongcount;
 	struct node* next;
 } node_t;
+
+int cnt=0; 
 
 void menu();
 node_t*  add(node_t* list_head,node_t*(*func)(node_t*,char*));
@@ -22,6 +25,7 @@ void printsearch(node_t* list_head, node_t*(*func)(node_t*,char*));
 void printform(node_t* list_head);
 void savefile(node_t* list_head);
 void openfile(node_t** list_head);
+void minitest(node_t* list_head);
 
 int main(void)
 {
@@ -66,9 +70,12 @@ remenu:
 				printform(list_head);
 				break;
 			case 9:
-				savefile(list_head);
+				minitest(list_head);
 				break;
 			case 10:
+				savefile(list_head);
+				break;
+			case 11:
 				printf("단어장을 종료합니다.\n");
 				return 0;
 		}
@@ -87,8 +94,9 @@ void menu()
 	printf("6. 체크표시된 단어 출력\n");
 	printf("7. 단어 검색\n");
 	printf("8. 품사별 출력\n");
-	printf("9. 단어장에 저장\n");
-	printf("10. 종료\n");
+	printf("9. 미니테스트 시작\n");
+	printf("10. 단어장에 저장\n");
+	printf("11. 종료\n");
 	printf("===========\n");
 	return;
 }
@@ -122,9 +130,10 @@ node_t* add(node_t* list_head, node_t*(*func)(node_t*,char*))
 	strcpy(new_node->korean,kor);
 	strcpy(new_node->form,pom);
 	new_node->check = chk;
-
+	new_node->wrongcount = 0;
 	new_node->next = list_head;
 	list_head = new_node;
+	cnt++;
 	return list_head;
 }
 
@@ -133,7 +142,8 @@ void print_list(node_t* list_head)
 	while (list_head != NULL){
 		printf("%s - ", list_head -> english);
 		printf("%s : ", list_head -> korean);
-		printf("%d\n", list_head -> check);
+		printf("%d ", list_head -> check);
+		printf("(미니테스트 틀린 횟수 : %d)\n", list_head->wrongcount);
 		list_head = list_head ->next;
 	}
 }
@@ -168,6 +178,7 @@ void sub(node_t** list_head, node_t*(*func)(node_t*,char*))
 		(*list_head) = tmp->next;
 		free(seek);
 		printf("삭제 완료\n");
+		cnt--;
 		return;
 	}
 	while (seek){
@@ -175,6 +186,7 @@ void sub(node_t** list_head, node_t*(*func)(node_t*,char*))
 			prev->next= seek->next;
 			free(seek);
 			printf("삭제 완료\n");
+			cnt--;
 			return;
 		}
 		prev=seek;
@@ -193,6 +205,7 @@ node_t* removeall(node_t* list_head)
 	}
 	free(tmp);
 	printf("전체 삭제 완료\n");
+	cnt=0;
 	return NULL;
 }
 
@@ -290,7 +303,7 @@ void savefile(node_t* list_head)
 	FILE* fp= fopen("dictionary.txt", "w+");
 	while(list_head!=NULL){
 		tmp=list_head;
-		fprintf(fp,"%s %s %s %d\n",tmp->english,tmp->korean,tmp->form,tmp->check);
+		fprintf(fp,"%s %s %s %d %d\n",tmp->english,tmp->korean,tmp->form,tmp->check, tmp->wrongcount);
 		list_head=list_head->next;
 		free(tmp);
 	}
@@ -308,11 +321,84 @@ void openfile(node_t** list_head)
 	}
 	while(!feof(fp)){
 		new_node = (node_t*) malloc (sizeof(node_t));
-		fscanf(fp,"%s %s %s %d\n",new_node->english,new_node->korean, new_node->form, &new_node->check);
+		fscanf(fp,"%s %s %s %d %d\n",new_node->english,new_node->korean, new_node->form, &new_node->check, &new_node->wrongcount);
 		new_node->next=*list_head;
 		*list_head=new_node;
+		cnt++;
 	}
 	fclose(fp);
 	printf("파일을 불러왔습니다.\n");
 }
 
+void minitest(node_t* list_head)
+{
+	node_t* tmp=list_head;
+	srand(time(NULL));
+	int i, sub_i;
+	char answer[20];
+	int score=0;
+	if (cnt<=4){
+		int list[cnt];
+		for (i=0; i<cnt; i++){
+			list[i] = rand()%cnt;
+			for (sub_i=0;sub_i<i;sub_i++){
+				if(list[i] == list[sub_i]){
+					i--;
+					break;
+				}
+			}
+		}
+		for (i=0;i<cnt;i++){
+			for(int j=0; j<list[i];j++){
+				list_head= list_head->next;
+			}
+			printf("%s의 한글 뜻은 ? ",list_head->english);
+			scanf("%s",answer);
+			if (strcmp(list_head->korean, answer) ==0){
+				printf("정답\n");
+				score++;
+			}
+			else {
+				printf("오답\n");
+				list_head->check=1;
+				list_head->wrongcount+=1;
+				printf("정답 : %s\n",list_head->korean);
+			}
+			list_head=tmp;
+		}
+	}
+
+	else {
+		int list[5];
+		for (i=0;i<5;i++){
+			list[i] = rand()%cnt;
+			for(sub_i=0;sub_i<i;sub_i++){
+				if (list[i] == list[sub_i]){
+					i--;
+					break;
+				}
+			}
+		}
+		for (i=0; i<5;i++){
+			for(int j=0; j<list[i];j++){
+				list_head=list_head->next;
+			}		
+			printf("%s의 한글 뜻은 ? ",list_head->english);
+			scanf("%s",answer);
+			if (strcmp(list_head->korean, answer) ==0){
+				printf("정답\n");
+				score++;
+			}
+			else {
+				printf("오답\n");
+				list_head->check = 1;
+				list_head->wrongcount+=1;
+				printf("정답 : %s\n",list_head->korean);
+			}
+			list_head=tmp;
+		}
+	}
+	
+	printf("점수 : %d\n",score);
+	return;
+}
