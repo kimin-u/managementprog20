@@ -25,7 +25,7 @@ void printchecklist(node_t* list_head);
 void printsearch(node_t* list_head, node_t*(*func)(node_t*,char*));
 void printform(node_t* list_head);
 void savefile(node_t* list_head);
-void openfile(node_t** list_head,node_t*(*func)(node_t*));
+void openfile(node_t** list_head);
 void minitest(node_t* list_head);
 void retest(node_t* list_head);
 
@@ -33,13 +33,13 @@ int main(void)
 {
 	node_t* list_head=NULL;
 	int select;
-	openfile(&list_head,removeall);
+	openfile(&list_head);
 remenu:
 	while (1){
 		menu();
 		printf("기능을 선택하세요 : ");
 		scanf("%d",&select);
-		if (select>13 || select<0){
+		if (select>13 || select<=0){
 			printf("잘못 입력하셨습니다.\n");
 			goto remenu;
 		}
@@ -84,6 +84,9 @@ remenu:
 			case 13:
 				printf("단어장을 종료합니다.\n");
 				return 0;
+			default:
+				printf("잘못 입력하셨습니다.\n");
+				goto remenu;
 		}
 	}
 }
@@ -346,9 +349,8 @@ void savefile(node_t* list_head)
 	printf("저장을 완료했습니다.\n");
 }
 
-void openfile(node_t** list_head,node_t*(*func)(node_t*))
+void openfile(node_t** list_head)
 {
-	(*list_head) = func(*list_head);
 	node_t* new_node;
 	FILE* fp = fopen("dictionary.txt","r+");
 	if (fp==NULL){
