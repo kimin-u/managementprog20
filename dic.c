@@ -16,6 +16,7 @@ int cnt=0;
 void menu();
 node_t*  add(node_t* list_head,node_t*(*func)(node_t*,char*));
 void print_list(node_t* list_head);
+void printwrong(node_t* list_head);
 node_t* search_eng(node_t* list_head, char* english);
 void sub(node_t** list_head, node_t*(*func)(node_t* , char*));
 node_t* removeall(node_t* list_head);
@@ -37,7 +38,7 @@ remenu:
 		menu();
 		printf("기능을 선택하세요 : ");
 		scanf("%d",&select);
-		if (select>10 || select<0){
+		if (select>12 || select<0){
 			printf("잘못 입력하셨습니다.\n");
 			goto remenu;
 		}
@@ -53,29 +54,33 @@ remenu:
 				break;
 			case 3:
 				list_head = removeall(list_head);
+				printf("전체 삭제 완료\n");
 				break;
 			case 4:
 				print_list(list_head);
 				break;
 			case 5:
-				changecheck(list_head, search_eng);
+				printwrong(list_head);
 				break;
 			case 6:
-				printchecklist(list_head);
+				changecheck(list_head, search_eng);
 				break;
 			case 7:
-				printsearch(list_head, search_eng);
+				printchecklist(list_head);
 				break;
 			case 8:
-				printform(list_head);
+				printsearch(list_head, search_eng);
 				break;
 			case 9:
-				minitest(list_head);
+				printform(list_head);
 				break;
 			case 10:
-				savefile(list_head);
+				minitest(list_head);
 				break;
 			case 11:
+				savefile(list_head);
+				break;
+			case 12:
 				printf("단어장을 종료합니다.\n");
 				return 0;
 		}
@@ -90,13 +95,14 @@ void menu()
 	printf("2. 단어 삭제\n");
 	printf("3. 단어 모두 삭제\n");
 	printf("4. 저장된 단어들 출력\n");
-	printf("5. 단어 체크표시 여부를 바꾸기\n");
-	printf("6. 체크표시된 단어 출력\n");
-	printf("7. 단어 검색\n");
-	printf("8. 품사별 출력\n");
-	printf("9. 미니테스트 시작\n");
-	printf("10. 단어장에 저장\n");
-	printf("11. 종료\n");
+	printf("5. 틀린적 있는 단어들 출력\n");
+	printf("6. 단어 체크표시 여부를 바꾸기\n");
+	printf("7. 체크표시된 단어 출력\n");
+	printf("8. 단어 검색\n");
+	printf("9. 품사별 출력\n");
+	printf("10. 미니테스트 시작\n");
+	printf("11. 단어장에 저장\n");
+	printf("12. 종료\n");
 	printf("===========\n");
 	return;
 }
@@ -105,6 +111,8 @@ node_t* add(node_t* list_head, node_t*(*func)(node_t*,char*))
 {
 	node_t* new_node;
 	node_t* tmp;
+	node_t* prev=NULL;
+	node_t* seek=list_head;;
 	char eng[20];
 	char kor[20];
 	char pom[20];
@@ -131,10 +139,20 @@ node_t* add(node_t* list_head, node_t*(*func)(node_t*,char*))
 	strcpy(new_node->form,pom);
 	new_node->check = chk;
 	new_node->wrongcount = 0;
-	new_node->next = list_head;
-	list_head = new_node;
+	while (seek!=NULL){
+		if (strcmp(seek->english,new_node->english)>0)
+			break;
+		prev=seek;
+		seek = seek->next;
+	}
+	new_node->next = seek;
+	if (prev!=NULL)
+		prev-> next = new_node;
+	else 
+		list_head = new_node;
 	cnt++;
 	return list_head;
+
 }
 
 void print_list(node_t* list_head)
@@ -142,9 +160,19 @@ void print_list(node_t* list_head)
 	while (list_head != NULL){
 		printf("%s - ", list_head -> english);
 		printf("%s : ", list_head -> korean);
-		printf("%d ", list_head -> check);
-		printf("(미니테스트 틀린 횟수 : %d)\n", list_head->wrongcount);
+		printf("%d\n", list_head -> check);
 		list_head = list_head ->next;
+	}
+}
+void printwrong(node_t* list_head)
+{
+	while (list_head != NULL){
+		if (list_head->wrongcount>=1){
+			printf("%s - ", list_head-> english);
+			printf("%s ", list_head -> korean);
+			printf("(틀린 횟수 : %d)\n",list_head->wrongcount);
+		}
+		list_head = list_head -> next;
 	}
 }
 
@@ -196,6 +224,9 @@ void sub(node_t** list_head, node_t*(*func)(node_t*,char*))
 
 node_t* removeall(node_t* list_head)
 {
+	if (list_head ==NULL){
+		return NULL;
+	}
 	node_t* tmp=list_head;
 	list_head=list_head->next;
 	while (list_head!=NULL){
@@ -204,7 +235,6 @@ node_t* removeall(node_t* list_head)
 		list_head=list_head->next;
 	}
 	free(tmp);
-	printf("전체 삭제 완료\n");
 	cnt=0;
 	return NULL;
 }
@@ -217,6 +247,10 @@ void changecheck(node_t* list_head, node_t*(*func)(node_t*, char*))
 	scanf("%s",eng);
 
 	tmp=func(list_head,eng);
+	if (tmp == NULL){
+		printf("없는 단어입니다.\n");
+		return;
+	}
 
 	if (tmp->check == 0){
 		printf("%s 체크표시를 하겠습니다.\n", eng);
@@ -313,6 +347,7 @@ void savefile(node_t* list_head)
 
 void openfile(node_t** list_head)
 {
+	(*list_head) = removeall(*list_head);
 	node_t* new_node;
 	FILE* fp = fopen("dictionary.txt","r+");
 	if (fp==NULL){
@@ -322,8 +357,14 @@ void openfile(node_t** list_head)
 	while(!feof(fp)){
 		new_node = (node_t*) malloc (sizeof(node_t));
 		fscanf(fp,"%s %s %s %d %d\n",new_node->english,new_node->korean, new_node->form, &new_node->check, &new_node->wrongcount);
-		new_node->next=*list_head;
-		*list_head=new_node;
+		if (*list_head  == NULL)
+			*list_head = new_node;
+		else {
+			node_t* tmp  = *list_head;
+			while (tmp->next != NULL)
+				tmp = tmp ->next;
+			tmp -> next = new_node;
+		}
 		cnt++;
 	}
 	fclose(fp);
